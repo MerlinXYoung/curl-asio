@@ -3,11 +3,14 @@
 #include <fstream>
 // #include <curl/curlbuild.h>
 
+#include <inttypes.h> 
+
 std::set<curl::easy*> active_downloads;
 
 
 void handle_download_completed(const asio::error_code& err, std::string url, curl::easy* easy)
 {
+	printf("\n");
 	if (!err)
 	{
 		std::cout << "Download of " << url << " completed" << std::endl;
@@ -26,8 +29,12 @@ void handle_download_completed(const asio::error_code& err, std::string url, cur
 
 bool show_process(curl::native::curl_off_t dltotal, curl::native::curl_off_t dlnow, curl::native::curl_off_t ultotal, curl::native::curl_off_t ulnow)
 {
-	system("cls");
-	printf("%0.2g %%\n", dlnow*100.0 / dltotal);
+	// system("reset");
+	// printf("\r%0.2g %%", dlnow*100.0 / dltotal);
+	printf("\r%" PRId64 "/%" PRId64, dlnow, dltotal);
+	fflush(stdout);
+	if(dlnow == dltotal && dlnow != 0)
+		printf("\n");
 	return true;
 }
 
@@ -42,8 +49,16 @@ void start_download(curl::multi& multi, const std::string& url)
 	easy->set_url(url);
 	easy->set_sink(std::make_shared<std::ofstream>(file_name.c_str(), std::ios::binary));
 	easy->async_perform(std::bind(handle_download_completed, std::placeholders::_1, url, easy));
-	easy->set_progress_callback(std::bind(show_process, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4) );
-
+	// easy->set_progress_callback(std::bind(show_process, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4) );
+	easy->set_progress_callback([file_name](curl::native::curl_off_t dltotal, curl::native::curl_off_t dlnow, curl::native::curl_off_t ultotal, curl::native::curl_off_t ulnow)->bool{
+		printf("\r%s:%8" PRId64 "/%" PRId64, file_name.c_str(), dlnow, dltotal);
+		fflush(stdout);
+		// if(dlnow == dltotal && dlnow != 0 )
+		// {	
+		// 	printf("\n");
+		// }
+		return true;
+	});
 	active_downloads.insert(easy);
 }
 
@@ -71,6 +86,8 @@ int main(int argc, char* argv[])
 	{
 		std::string url;
 		std::getline(url_file, url);
+		if(url.empty()) continue;
+		std::cout<<"add "<<url<<std::endl;
 		start_download(manager, url);
 	}
 	

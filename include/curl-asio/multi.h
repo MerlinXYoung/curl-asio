@@ -79,7 +79,7 @@ namespace curl
 
 		asio::io_service& io_service_;
 		initialization::ptr initref_;
-		native::CURLM* handle_;
+		native::CURLM* handle_{nullptr};
 		easy_set_type easy_handles_;
 		asio::steady_timer timeout_;
 		int still_running_;

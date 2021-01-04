@@ -1,3 +1,2 @@
-http://scloud-dlsw.br.baidu.com/package/201510/bdbrowserSetup-7.6.100.2089-1512_10002896.exe
-http://xiazai.xiazaiba.com/Soft/T/TCPView_3.05_XiaZaiBa.zip?pcid=2296&filename=TCPView_3.05_XiaZaiBa.zip&downloadtype=xiazaiba_seo
-https://codeload.github.com/avplayer/avrouter/zip/master
+https://curl.se/download/curl-7.74.0.tar.gz
+https://curl.se/download/curl-7.73.0.tar.gz

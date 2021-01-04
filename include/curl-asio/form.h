@@ -46,7 +46,7 @@ namespace curl
 
 	private:
 		initialization::ptr initref_;
-		native::curl_httppost* post_;
-		native::curl_httppost* last_;
+		native::curl_httppost* post_{nullptr};
+		native::curl_httppost* last_{nullptr};
 	};
 }

@@ -42,7 +42,7 @@ namespace curl
 		static void unlock(native::CURL* handle, native::curl_lock_data data, void* userptr);
 
 		initialization::ptr initref_;
-		native::CURLSH* handle_;
+		native::CURLSH* handle_{nullptr};
 		std::mutex mutex_;
 	};
 }

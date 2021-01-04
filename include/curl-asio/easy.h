@@ -548,8 +548,8 @@ namespace curl
 
 		asio::io_service& io_service_;
 		initialization::ptr initref_;
-		native::CURL* handle_;
-		multi* multi_;
+		native::CURL* handle_{nullptr};
+		multi* multi_{nullptr};
 		bool multi_registered_;
 		handler_type handler_;
 		std::shared_ptr<std::istream> source_;

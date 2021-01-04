@@ -32,6 +32,6 @@ namespace curl
 		
 	private:
 		initialization::ptr initref_;
-		native::curl_slist* list_;
+		native::curl_slist* list_{nullptr};
 	};
 }

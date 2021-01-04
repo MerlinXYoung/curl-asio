@@ -21,7 +21,7 @@ string_list::~string_list()
 	if (list_)
 	{
 		native::curl_slist_free_all(list_);
-		list_ = 0;
+		list_ = nullptr;
 	}
 }
 

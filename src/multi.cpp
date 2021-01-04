@@ -44,7 +44,7 @@ multi::~multi()
 	if (handle_)
 	{
 		native::curl_multi_cleanup(handle_);
-		handle_ = 0;
+		handle_ = nullptr;
 	}
 }
 

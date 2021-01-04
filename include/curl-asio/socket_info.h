@@ -28,7 +28,7 @@ namespace curl
 		{
 		}
 		
-		easy* handle;
+		easy* handle{nullptr};
 		std::shared_ptr<socket_type> socket;
 		bool pending_read_op;
 		bool pending_write_op;

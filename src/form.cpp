@@ -25,7 +25,7 @@ form::~form()
 	if (post_)
 	{
 		native::curl_formfree(post_);
-		post_ = 0;
+		post_ = nullptr;
 	}
 }
 

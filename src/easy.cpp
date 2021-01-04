@@ -45,7 +45,7 @@ easy::~easy()
 	if (handle_)
 	{
 		native::curl_easy_cleanup(handle_);
-		handle_ = 0;
+		handle_ = nullptr;
 	}
 }
 
@@ -484,7 +484,8 @@ void easy::handle_completion(const asio::error_code& err)
 	}
 
 	multi_registered_ = false;
-	io_service_.post(std::bind(handler_, err));
+	// io_service_.post(std::bind(handler_, err));
+	io_service_.dispatch(std::bind(handler_, err));
 }
 
 void easy::init()
