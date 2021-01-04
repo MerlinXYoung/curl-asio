@@ -14,11 +14,11 @@ class curl_easy_error_category : public asio::error_category
 {
 public:
 	curl_easy_error_category() { }
-	const char* name() const;
-	std::string message(int ev) const;
+	const char* name() const noexcept override;
+	std::string message(int ev) const override;
 };
 
-const char* curl_easy_error_category::name() const
+const char* curl_easy_error_category::name() const noexcept
 {
 	return "curl-easy";
 }
@@ -32,11 +32,11 @@ class curl_multi_error_category : public asio::error_category
 {
 public:
 	curl_multi_error_category() { }
-	const char* name() const;
-	std::string message(int ev) const;
+	const char* name() const noexcept override;
+	std::string message(int ev) const override;
 };
 
-const char* curl_multi_error_category::name() const
+const char* curl_multi_error_category::name() const noexcept
 {
 	return "curl-multi";
 }
@@ -50,11 +50,11 @@ class curl_share_error_category : public asio::error_category
 {
 public:
 	curl_share_error_category() { }
-	const char* name() const;
-	std::string message(int ev) const;
+	const char* name() const noexcept override;
+	std::string message(int ev) const override;
 };
 
-const char* curl_share_error_category::name() const
+const char* curl_share_error_category::name() const noexcept
 {
 	return "curl-share";
 }
@@ -68,11 +68,11 @@ class curl_form_error_category : public asio::error_category
 {
 public:
 	curl_form_error_category() { }
-	const char* name() const;
-	std::string message(int ev) const;
+	const char* name() const noexcept override;
+	std::string message(int ev) const override;
 };
 
-const char* curl_form_error_category::name() const
+const char* curl_form_error_category::name() const noexcept
 {
 	return "curl-form";
 }

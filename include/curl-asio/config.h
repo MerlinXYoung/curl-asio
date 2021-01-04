@@ -6,8 +6,8 @@
 
 #pragma once
 
-#define CURL_STATICLIB
-#define CURLASIO_STATIC
+// #define CURL_STATICLIB
+// #define CURLASIO_STATIC
 
 #if !defined CURLASIO_API
 #	if defined _MSC_VER
