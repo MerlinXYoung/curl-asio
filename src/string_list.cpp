@@ -11,9 +11,11 @@
 using namespace curl;
 
 string_list::string_list():
-	list_(0)
+	list_(nullptr)
 {
+#ifdef CURL_ASIO_ENSURE_INITIALIZATION
 	initref_ = initialization::ensure_initialization();
+#endif
 }
 
 string_list::~string_list()

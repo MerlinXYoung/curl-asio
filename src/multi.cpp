@@ -17,7 +17,9 @@ multi::multi(asio::io_service& io_service):
 	timeout_(io_service),
 	still_running_(0)
 {
+#ifdef CURL_ASIO_ENSURE_INITIALIZATION
 	initref_ = initialization::ensure_initialization();
+#endif
 	handle_ = native::curl_multi_init();
 
 	if (!handle_)

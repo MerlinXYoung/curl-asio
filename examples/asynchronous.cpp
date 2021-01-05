@@ -40,7 +40,7 @@ bool show_process(curl::native::curl_off_t dltotal, curl::native::curl_off_t dln
 
 void start_download(curl::multi& multi, const std::string& url)
 {
-	curl::easy* easy= new curl::easy(multi);
+	curl::easy* easy= new curl::easy(/*multi*/);
 	
 	// see 'Use server-provided file names' example for a more detailed implementation of this function which receives
 	// the target file name from the server using libcurl's header callbacks
@@ -48,7 +48,7 @@ void start_download(curl::multi& multi, const std::string& url)
 	
 	easy->set_url(url);
 	easy->set_sink(std::make_shared<std::ofstream>(file_name.c_str(), std::ios::binary));
-	easy->async_perform(std::bind(handle_download_completed, std::placeholders::_1, url, easy));
+	easy->async_perform(multi, std::bind(handle_download_completed, std::placeholders::_1, url, easy));
 	// easy->set_progress_callback(std::bind(show_process, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4) );
 	easy->set_progress_callback([file_name](curl::native::curl_off_t dltotal, curl::native::curl_off_t dlnow, curl::native::curl_off_t ultotal, curl::native::curl_off_t ulnow)->bool{
 		printf("\r%s:%8" PRId64 "/%" PRId64, file_name.c_str(), dlnow, dltotal);
@@ -70,7 +70,7 @@ int main(int argc, char* argv[])
 		std::cerr << "usage: " << argv[0] << " url-list-file" << std::endl;
 		return 1;
 	}
-
+	curl::initialization initer();
 	// this example program downloads all urls in the text file argv[1] to the current directory
 	char* url_file_name = argv[1];
 	

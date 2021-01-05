@@ -12,7 +12,10 @@
 #include <asio/detail/noncopyable.hpp>
 #include <asio/error_code.hpp>
 #include <string>
+#include <memory>
+#ifdef CURL_ASIO_ENSURE_INITIALIZATION
 #include "initialization.h"
+#endif
 #include "native.h"
 
 namespace curl
@@ -45,7 +48,9 @@ namespace curl
 		void add_file_content(const std::string& key, const std::string& file_path, const std::string& content_type, asio::error_code& ec);
 
 	private:
+#ifdef CURL_ASIO_ENSURE_INITIALIZATION
 		initialization::ptr initref_;
+#endif
 		native::curl_httppost* post_{nullptr};
 		native::curl_httppost* last_{nullptr};
 	};

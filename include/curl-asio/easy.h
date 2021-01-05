@@ -16,7 +16,9 @@
 #include <memory>
 #include <string>
 #include "error_code.h"
+#ifdef CURL_ASIO_ENSURE_INITIALIZATION
 #include "initialization.h"
+#endif
 
 #define STRINGIZE(text) STRINGIZE_A((text))
 #define STRINGIZE_A(arg) STRINGIZE_I arg
@@ -139,20 +141,55 @@ namespace curl
 
 		static easy* from_native(native::CURL* native_easy);
 
-		easy(asio::io_service& io_service);
-		easy(multi& multi_handle);
+		easy(/*asio::io_service& io_service*/);
+		// easy(multi& multi_handle);
 		~easy();
 
 		inline native::CURL* native_handle() { return handle_; }
 
 		void perform();
 		void perform(asio::error_code& ec);
-		void async_perform(handler_type handler);
+		void async_perform(multi& multi_handle, handler_type handler);
 		void cancel();
+#ifdef CURL_ASIO_STREAM
 		void set_source(std::shared_ptr<std::istream> source);
 		void set_source(std::shared_ptr<std::istream> source, asio::error_code& ec);
 		void set_sink(std::shared_ptr<std::ostream> sink);
 		void set_sink(std::shared_ptr<std::ostream> sink, asio::error_code& ec);
+#else
+		template<class F>
+		void set_source(F&& source)
+		{
+			asio::error_code ec;
+			set_source(std::move(source), ec);
+			asio::detail::throw_error(ec, "set_source");
+		}
+		template<class F>
+		void set_source(F&& f, asio::error_code& ec)
+		{
+			source_ = std::move(f);
+			set_read_function(&easy::read_function, ec);
+			if (!ec) set_read_data(this, ec);
+			if (!ec) set_seek_function(&easy::seek_function, ec);
+			if (!ec) set_seek_data(this, ec);
+		}
+
+		template<class F>
+		void set_sink(F&& f)
+		{
+			asio::error_code ec;
+			set_sink(std::move(f), ec);
+			asio::detail::throw_error(ec, "set_sink");
+		}
+
+		template<class F>
+		void set_sink(F&& f, asio::error_code& ec)
+		{
+			sink_ = std::move(f);
+			set_write_function(&easy::write_function);
+			if (!ec) set_write_data(this);
+		}
+#endif
 
 		typedef std::function<bool(native::curl_off_t dltotal, native::curl_off_t dlnow, native::curl_off_t ultotal, native::curl_off_t ulnow)> progress_callback_t;
 		void unset_progress_callback();
@@ -481,7 +518,7 @@ namespace curl
 		// getters
 
 		IMPLEMENT_CURL_OPTION_GET_STRING(get_effective_url, native::CURLINFO_EFFECTIVE_URL);
-		IMPLEMENT_CURL_OPTION_GET_LONG(get_reponse_code, native::CURLINFO_RESPONSE_CODE);
+		IMPLEMENT_CURL_OPTION_GET_LONG(get_response_code, native::CURLINFO_RESPONSE_CODE);
 		IMPLEMENT_CURL_OPTION_GET_LONG(get_http_connectcode, native::CURLINFO_HTTP_CONNECTCODE);
 		IMPLEMENT_CURL_OPTION_GET_LONG(get_filetime, native::CURLINFO_FILETIME);
 		IMPLEMENT_CURL_OPTION_GET_DOUBLE(get_total_time, native::CURLINFO_TOTAL_TIME);
@@ -546,14 +583,24 @@ namespace curl
 		static native::curl_socket_t opensocket(void* clientp, native::curlsocktype purpose, struct native::curl_sockaddr* address);
 		static int closesocket(void* clientp, native::curl_socket_t item);
 
-		asio::io_service& io_service_;
+		// asio::io_service& io_service_;
+#ifdef CURL_ASIO_ENSURE_INITIALIZATION
 		initialization::ptr initref_;
+#endif
 		native::CURL* handle_{nullptr};
 		multi* multi_{nullptr};
-		bool multi_registered_;
+		// bool multi_registered_;
 		handler_type handler_;
+#ifdef CURL_ASIO_STREAM
 		std::shared_ptr<std::istream> source_;
 		std::shared_ptr<std::ostream> sink_;
+#else
+		using source_type = std::function<size_t(char* ptr, size_t size)>;
+		source_type source_;
+		using sink_type = std::function<bool(char* ptr, size_t size)>;
+		sink_type sink_;
+#endif
+
 		std::string post_fields_;
 		std::shared_ptr<form> form_;
 		std::shared_ptr<string_list> headers_;

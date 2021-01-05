@@ -9,17 +9,23 @@
 #pragma once
 
 #include "config.h"
+#include <asio/detail/noncopyable.hpp>
+#ifdef CURL_ASIO_ENSURE_INITIALIZATION
 #include <memory>
-
+#endif
 namespace curl
 {
-	class initialization
+	class initialization:public asio::noncopyable
 	{
 	public:
+#ifdef CURL_ASIO_ENSURE_INITIALIZATION
 		typedef std::shared_ptr<initialization> ptr;
 		static ptr ensure_initialization();
+#endif
 		~initialization();
+#ifdef CURL_ASIO_ENSURE_INITIALIZATION
 	protected:
+#endif
 		initialization();
 	};
 }

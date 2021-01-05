@@ -22,21 +22,21 @@ easy* easy::from_native(native::CURL* native_easy)
 	return easy_handle;
 }
 
-easy::easy(asio::io_service& io_service):
-	io_service_(io_service),
-	multi_(0),
-	multi_registered_(false)
+easy::easy(/*asio::io_service& io_service*/):
+	// io_service_(io_service),
+	multi_(nullptr)
+	// multi_registered_(false)
 {
 	init();
 }
 
-easy::easy(multi& multi_handle):
-	io_service_(multi_handle.get_io_service()),
-	multi_(&multi_handle),
-	multi_registered_(false)
-{
-	init();
-}
+// easy::easy(multi& multi_handle):
+// 	io_service_(multi_handle.get_io_service()),
+// 	multi_(&multi_handle),
+// 	multi_registered_(false)
+// {
+// 	init();
+// }
 
 easy::~easy()
 {
@@ -65,18 +65,18 @@ void easy::perform(asio::error_code& ec)
 
 	ec = asio::error_code(native::curl_easy_perform(handle_), asio::system_category());
 
-	if (sink_)
-	{
-		sink_->flush();
-	}
+	// if (sink_)
+	// {
+	// 	sink_->flush();
+	// }
 }
 
-void easy::async_perform(handler_type handler)
+void easy::async_perform(multi& multi_handle, handler_type handler)
 {
-	if (!multi_)
-	{
-		throw std::runtime_error("attempt to perform async. operation without assigning a multi object");
-	}
+	// if (!multi_)
+	// {
+	// 	throw std::runtime_error("attempt to perform async. operation without assigning a multi object");
+	// }
 
 	// Cancel all previous async. operations
 	cancel();
@@ -90,7 +90,8 @@ void easy::async_perform(handler_type handler)
 	set_closesocket_data(multi_);
 
 	handler_ = handler;
-	multi_registered_ = true;
+	multi_ = &multi_handle;
+	// multi_registered_ = true;
 
 	// Registering the easy handle with the multi handle might invoke a set of callbacks right away which cause the completion event to fire from within this function.
 	multi_->add(this);
@@ -98,13 +99,14 @@ void easy::async_perform(handler_type handler)
 
 void easy::cancel()
 {
-	if (multi_registered_)
+	// if (multi_registered_)
+	if(multi_)
 	{
 		handle_completion(asio::error_code(asio::error::operation_aborted));
 		multi_->remove(this);
 	}
 }
-
+#if 0
 void easy::set_source(std::shared_ptr<std::istream> source)
 {
 	asio::error_code ec;
@@ -134,6 +136,7 @@ void easy::set_sink(std::shared_ptr<std::ostream> sink, asio::error_code& ec)
 	set_write_function(&easy::write_function);
 	if (!ec) set_write_data(this);
 }
+#endif
 
 void easy::unset_progress_callback()
 {
@@ -478,19 +481,22 @@ void easy::set_telnet_options(std::shared_ptr<string_list> telnet_options, asio:
 
 void easy::handle_completion(const asio::error_code& err)
 {
-	if (sink_)
-	{
-		sink_->flush();
-	}
+	// if (sink_)
+	// {
+	// 	sink_->flush();
+	// }
 
-	multi_registered_ = false;
+	// multi_registered_ = false;
 	// io_service_.post(std::bind(handler_, err));
-	io_service_.dispatch(std::bind(handler_, err));
+	if(multi_) 
+		multi_->get_io_service().dispatch(std::bind(handler_, err));
 }
 
 void easy::init()
 {
+#ifdef CURL_ASIO_ENSURE_INITIALIZATION
 	initref_ = initialization::ensure_initialization();
+#endif
 	handle_ = native::curl_easy_init();
 
 	if (!handle_)
@@ -504,7 +510,7 @@ void easy::init()
 native::curl_socket_t easy::open_tcp_socket(native::curl_sockaddr* address)
 {
 	asio::error_code ec;
-	std::shared_ptr<socket_type> socket(new socket_type(io_service_));
+	std::shared_ptr<socket_type> socket(new socket_type(multi_->get_io_service()));
 
 	switch (address->family)
 	{
@@ -532,6 +538,7 @@ native::curl_socket_t easy::open_tcp_socket(native::curl_sockaddr* address)
 	}
 }
 
+#ifdef CURL_ASIO_STREAM
 size_t easy::write_function(char* ptr, size_t size, size_t nmemb, void* userdata)
 {
 	easy* self = static_cast<easy*>(userdata);
@@ -575,6 +582,38 @@ size_t easy::read_function(void* ptr, size_t size, size_t nmemb, void* userdata)
 		return static_cast<size_t>(chars_stored);
 	}
 }
+#else
+size_t easy::write_function(char* ptr, size_t size, size_t nmemb, void* userdata)
+{
+	easy* self = static_cast<easy*>(userdata);
+	size_t actual_size = size * nmemb;
+
+	if (!actual_size)
+	{
+		return 0;
+	}
+	if(self->sink_)
+		return self->sink_(ptr, actual_size)? actual_size: 0;
+	return 0;
+
+	
+}
+
+size_t easy::read_function(void* ptr, size_t size, size_t nmemb, void* userdata)
+{
+	// FIXME readsome doesn't work with TFTP (see cURL docs)
+
+	easy* self = static_cast<easy*>(userdata);
+	size_t actual_size = size * nmemb;
+
+	if(self->source_)
+		return self->source_((char*)ptr, actual_size);
+	return CURL_READFUNC_ABORT;
+
+	
+
+}
+#endif
 
 int easy::seek_function(void* instream, native::curl_off_t offset, int origin)
 {

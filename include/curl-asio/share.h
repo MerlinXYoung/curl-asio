@@ -11,7 +11,10 @@
 #include "config.h"
 #include <asio/detail/noncopyable.hpp>
 #include <mutex>
+#include <memory>
+#ifdef CURL_ASIO_ENSURE_INITIALIZATION
 #include "initialization.h"
+#endif
 #include "native.h"
 
 namespace curl
@@ -41,7 +44,9 @@ namespace curl
 		static void lock(native::CURL* handle, native::curl_lock_data data, native::curl_lock_access access, void* userptr);
 		static void unlock(native::CURL* handle, native::curl_lock_data data, void* userptr);
 
+#ifdef CURL_ASIO_ENSURE_INITIALIZATION
 		initialization::ptr initref_;
+#endif
 		native::CURLSH* handle_{nullptr};
 		std::mutex mutex_;
 	};

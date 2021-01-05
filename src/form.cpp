@@ -14,10 +14,12 @@
 using namespace curl;
 
 form::form():
-	post_(0),
-	last_(0)
+	post_(nullptr),
+	last_(nullptr)
 {
+#ifdef CURL_ASIO_ENSURE_INITIALIZATION
 	initref_ = initialization::ensure_initialization();
+#endif
 }
 
 form::~form()

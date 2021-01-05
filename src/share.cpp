@@ -14,7 +14,9 @@ using namespace curl;
 
 share::share()
 {
+#ifdef CURL_ASIO_ENSURE_INITIALIZATION
 	initref_ = initialization::ensure_initialization();
+#endif
 	handle_ = native::curl_share_init();
 
 	if (!handle_)

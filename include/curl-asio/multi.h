@@ -16,7 +16,9 @@
 #include <memory>
 #include <map>
 #include <set>
+#ifdef CURL_ASIO_ENSURE_INITIALIZATION
 #include "initialization.h"
+#endif
 #include "native.h"
 #include "socket_info.h"
 
@@ -78,7 +80,9 @@ namespace curl
 		typedef std::set<easy*> easy_set_type;
 
 		asio::io_service& io_service_;
+#ifdef CURL_ASIO_ENSURE_INITIALIZATION
 		initialization::ptr initref_;
+#endif
 		native::CURLM* handle_{nullptr};
 		easy_set_type easy_handles_;
 		asio::steady_timer timeout_;

@@ -68,6 +68,7 @@ ENDIF()
 ADD_SUBDIRECTORY(src)
 IF(BUILD_EXAMPLES)
 	ADD_SUBDIRECTORY(examples)
+	ADD_SUBDIRECTORY(examples1)
 ENDIF()
 
 # Install CMake modules for curl-asio and libcurl

@@ -7,14 +7,21 @@
 */
 
 
+#include <string>
+#include <stdexcept>
 #include <curl-asio/initialization.h>
 #include <curl-asio/native.h>
+
+#ifdef CURL_ASIO_ENSURE_INITIALIZATION
 #include <mutex>
-#include <stdexcept>
-#include <string>
+#endif
 
-using namespace curl;
 
+
+
+namespace curl{
+
+#ifdef CURL_ASIO_ENSURE_INITIALIZATION
 std::weak_ptr<initialization> helper_instance;
 std::mutex helper_lock;
 
@@ -36,6 +43,7 @@ initialization::ptr initialization::ensure_initialization()
 
 	return result;
 }
+#endif
 
 initialization::initialization()
 {
@@ -51,3 +59,5 @@ initialization::~initialization()
 {
 	native::curl_global_cleanup();
 }
+
+} // namespace curl
